@@ -1,0 +1,63 @@
+#include <stdio.h>
+
+struct Process {
+    int pid;        // Process ID
+    int arrival;    // Arrival Time
+    int burst;      // Burst Time
+    int completion; // Completion Time
+    int turnaround; // Turnaround Time
+    int waiting;    // Waiting Time
+    int done;       // Completion flag
+};
+
+int main() {
+    int n, i, completed = 0, currentTime = 0, minBurst, idx;
+    float totalTAT = 0, totalWT = 0;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    struct Process p[n];
+
+    for (i = 0; i < n; i++) {
+        p[i].pid = i + 1;
+        printf("\nEnter Arrival Time and Burst Time for Process %d: ", p[i].pid);
+        scanf("%d %d", &p[i].arrival, &p[i].burst);
+        p[i].done = 0;
+    }
+    printf("\n--- Gantt Chart (Execution Order) ---\n");
+    while (completed != n) {
+        idx = -1;
+        minBurst = 9999;
+        for (i = 0; i < n; i++) {
+            if (p[i].arrival <= currentTime && p[i].done == 0 && p[i].burst < minBurst) {
+                minBurst = p[i].burst;
+                idx = i;
+            }
+        }
+
+        if (idx != -1) {
+            printf("P%d ", p[idx].pid);
+            currentTime += p[idx].burst;
+            p[idx].completion = currentTime;
+            p[idx].turnaround = p[idx].completion - p[idx].arrival;
+            p[idx].waiting = p[idx].turnaround - p[idx].burst;
+            p[idx].done = 1;
+           totalTAT += p[idx].turnaround;
+            totalWT += p[idx].waiting;
+            completed++;
+        } else {
+            currentTime++;
+        }
+    }
+    printf("\n\n--- Process Details ---\n");
+    printf("PID\tAT\tBT\tCT\tTAT\tWT\n");
+    for (i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t%d\t%d\t%d\n", 
+               p[i].pid, p[i].arrival, p[i].burst, 
+               p[i].completion, p[i].turnaround, p[i].waiting);
+    }
+    printf("\nAverage Turnaround Time: %.2f", totalTAT / n);
+    printf("\nAverage Waiting Time: %.2f\n", totalWT / n);
+    return 0;
+}
