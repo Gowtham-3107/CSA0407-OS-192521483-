@@ -1,0 +1,77 @@
+#include <stdio.h>
+
+struct Process {
+    int pid;        // Process ID
+    int arrival;    // Arrival Time
+    int burst;      // Burst Time
+    int priority;   // Priority (lower = higher)
+    int remaining;  // Remaining Burst Time
+    int completion; // Completion Time
+    int turnaround; // Turnaround Time
+    int waiting;    // Waiting Time
+};
+
+int main() {
+    int n, completed = 0, currentTime = 0, i, minPriority;
+    float totalTAT = 0, totalWT = 0;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    struct Process p[n];
+
+    for (i = 0; i < n; i++) {
+        p[i].pid = i + 1;
+        printf("\nEnter Arrival Time, Burst Time, and Priority for Process %d: ", p[i].pid);
+        scanf("%d %d %d", &p[i].arrival, &p[i].burst, &p[i].priority);
+        p[i].remaining = p[i].burst;
+    }
+
+    printf("\n--- Gantt Chart (Process Execution Order) ---\n");
+
+    while (completed != n) {
+        int idx = -1;
+        minPriority = 9999;
+
+        // Find process with highest priority that has arrived
+        for (i = 0; i < n; i++) {
+            if (p[i].arrival <= currentTime && p[i].remaining > 0 && p[i].priority < minPriority) {
+                minPriority = p[i].priority;
+                idx = i;
+            }
+        }
+
+        if (idx != -1) {
+            // Execute process for one unit of time
+            p[idx].remaining--;
+            printf("P%d ", p[idx].pid);
+            currentTime++;
+
+            // If process completes
+            if (p[idx].remaining == 0) {
+                completed++;
+                p[idx].completion = currentTime;
+                p[idx].turnaround = p[idx].completion - p[idx].arrival;
+                p[idx].waiting = p[idx].turnaround - p[idx].burst;
+                totalTAT += p[idx].turnaround;
+                totalWT += p[idx].waiting;
+            }
+        } else {
+            // No process has arrived yet
+            currentTime++;
+        }
+    }
+
+    printf("\n\n--- Process Details ---\n");
+    printf("PID\tAT\tBT\tPRI\tCT\tTAT\tWT\n");
+    for (i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
+               p[i].pid, p[i].arrival, p[i].burst, p[i].priority,
+               p[i].completion, p[i].turnaround, p[i].waiting);
+    }
+
+    printf("\nAverage Turnaround Time: %.2f", totalTAT / n);
+    printf("\nAverage Waiting Time: %.2f\n", totalWT / n);
+
+    return 0;
+}
